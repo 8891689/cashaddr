@@ -1,17 +1,12 @@
 CashAddr Library (cashaddr.h, cashaddr.c) Detailed Documentation
-###1. Introduction
 
-This is a C library designed for encoding and decoding Bitcoin Cash (BCH) addresses in the CashAddr format.
- 
- CashAddr is a more modern and user-friendly BCH address format, intended to reduce the likelihood of errors when users copy and paste addresses.
- 
- The library provides two core functions: decode_cashaddr and encode_cashaddr, for decoding and encoding CashAddr addresses, respectively. 
- 
- It also includes a series of internal helper functions to perform the underlying bitwise operations, checksum calculations, and Base32 conversions.
+1. Introduction
 
-###2. Why CashAddr?
+This is a C library designed for encoding and decoding Bitcoin Cash (BCH) addresses in the CashAddr format. CashAddr is a modern and user-friendly BCH address format intended to reduce errors when users copy and paste addresses. The library provides two core functions: decode_cashaddr and encode_cashaddr, for decoding and encoding CashAddr addresses, respectively. It also includes internal helper functions to perform the underlying bitwise operations, checksum calculations, and Base32 conversions.
 
-The traditional BCH address format (usually starting with '1' or '3') is based on Base58Check encoding, which is prone to visual ambiguity (e.g., uppercase 'I' and lowercase 'l', the digit '0' and uppercase 'O'). 
+2. Why CashAddr?
+
+The traditional BCH address format (usually starting with '1' or '3') is based on Base58Check encoding, which is prone to visual ambiguity (e.g., uppercase 'I' and lowercase 'l', the digit '0' and uppercase 'O').
 
 CashAddr addresses these issues by:
 
@@ -19,13 +14,11 @@ Using Base32 encoding: CashAddr utilizes a smaller character set (qpzry9x8gf2tvd
 
 Including a checksum: CashAddr incorporates a robust checksum mechanism that detects most common input errors.
 
-Case-insensitive (technically, but unified to lowercase internally): While technically case-insensitive according to the specification, the BCH ecosystem generally recommends and uses lowercase CashAddr addresses. 
-
-This improves readability and consistency. The CashAddr library internally converts addresses to lowercase.
+Case-insensitive (technically, but unified to lowercase internally): While technically case-insensitive according to the specification, the BCH ecosystem generally recommends and uses lowercase CashAddr addresses. This improves readability and consistency. The CashAddr library internally converts addresses to lowercase.
 
 Including a prefix: CashAddr addresses include a prefix (e.g., "bitcoincash"), used to distinguish between different networks (mainnet, testnet, etc.) and address types.
 
-###3. Core Functions
+3. Core Functions
 3.1. decode_cashaddr Function
 
 Purpose: Decodes a CashAddr address string into its constituent parts.
@@ -44,8 +37,8 @@ typedef struct {
     char type[16];   // Address type ("P2PKH" or "P2SH")
     char hash160[41];// 160-bit hash (hexadecimal string, 40 characters + '\0')
 } CashAddrResult;
-
 ```
+
 Return Value:
 
 0: Decoding successful.
@@ -56,9 +49,9 @@ Invalid CashAddr address string.
 
 Checksum mismatch.
 
-Memory allocation failure.
+Memory allocation failure (though this is unlikely in a well-designed implementation).
 
-Address is too short or too long
+Address is too short or too long.
 
 Invalid character.
 
@@ -68,7 +61,7 @@ Decoding Process (Detailed Steps):
 
 Prefix Separation:
 
-Find the colon (':') in the address string.
+Find the colon (:) in the address string.
 
 If a colon is found, the part before the colon is the prefix, and the part after the colon is the Base32 encoded data.
 
@@ -180,7 +173,7 @@ The lower 3 bits of the version byte are version.
 
 Hexadecimal Conversion:
 
-Use the hexstr2bytes function to convert the 40-character hexadecimal hash string into a 20-byte array.
+Use the hexstr2bytes function to convert the 40-character hexadecimal hash160 string into a 20-byte array.
 
 If the conversion fails (e.g., the hash contains non-hexadecimal characters), return an error.
 
@@ -212,28 +205,23 @@ Use the CHARSET to convert this combined 5-bit integer array into a Base32 encod
 
 Address Concatenation:
 
-Concatenate the prefix, a colon (':'), and the Base32 encoded string to form the complete CashAddr address.
+Concatenate the prefix, a colon (:), and the Base32 encoded string to form the complete CashAddr address.
 
-Use the snprintf function to perform the concatenation and check if the output buffer is large enough.
+Use the snprintf function to perform the concatenation and check if the output buffer is large enough. This is crucial for buffer overflow prevention.
 
 Return: Copy the concatenated address string into out_address.
 
-###4. Internal Helper Functions
+4. Internal Helper Functions
 
-_polymod(const int *values, size_t count): Implements the polynomial modulo operation defined in the CashAddr specification, used for checksum calculation. 
-This is a core part of the CashAddr specification.
+_polymod(const int *values, size_t count): Implements the polynomial modulo operation defined in the CashAddr specification, used for checksum calculation. This is a core part of the CashAddr specification.
 
-_calculate_checksum(const char *prefix, const int *payload, int payload_len, int checksum[8]): Calculates the checksum for a CashAddr address. 
-It uses the _polymod function.
+_calculate_checksum(const char *prefix, const int *payload, int payload_len, int checksum[8]): Calculates the checksum for a CashAddr address. It uses the _polymod function.
 
-_pack_5bit(const unsigned char *data, int data_len, int *out, int max_out): Converts a byte array (data) into a 5-bit integer array (out). 
-This is part of the encoding process, converting 8-bit bytes into the 5-bit data units used by CashAddr.
+_pack_5bit(const unsigned char *data, int data_len, int *out, int max_out): Converts a byte array (data) into a 5-bit integer array (out). This is part of the encoding process, converting 8-bit bytes into the 5-bit data units used by CashAddr.
 
-_unpack_5bit(const int *data, int data_len, unsigned char *out, int max_out): Converts a 5-bit integer array (data) back into a byte array (out).
- This is part of the decoding process, converting CashAddr's 5-bit data units back into 8-bit bytes.
+_unpack_5bit(const int *data, int data_len, unsigned char *out, int max_out): Converts a 5-bit integer array (data) back into a byte array (out). This is part of the decoding process, converting CashAddr's 5-bit data units back into 8-bit bytes.
 
 hexchar2int(char c): Converts a single hexadecimal character ('0'-'9', 'a'-'f', 'A'-'F') to its corresponding integer value (0-15).
-
 
 hexstr2bytes(const char *hex, unsigned char *out, int max_out): Converts a hexadecimal string (hex) into a byte array (out).
 
@@ -251,7 +239,7 @@ gcc your_program.c cashaddr.c -o your_program
 
 You can use any standard C compiler (e.g., GCC, Clang).
 
-3. Calling the API:
+Calling the API:
 ```
 #include "cashaddr.h"
 #include <stdio.h>
@@ -277,17 +265,19 @@ int main() {
     const char *prefix = "bitcoincash";
     int version = 0;
     const char *type = "P2PKH";
-    const char *hash160 = "b774k7h5xlj29mms6s4cwef74vcwvy22gdx6a"; // Incorrect hash for testing
+    char hash160[41]; // Make it modifiable
+     // Incorrect hash for testing
+    strcpy(hash160, "b774k7h5xlj29mms6s4cwef74vcwvy22gdx6a");
     if (encode_cashaddr(prefix, version, type, hash160, encoded_address, sizeof(encoded_address)) == 0)
         {
         printf("Encoding successful:\n%s\n",encoded_address);
         }
-     else{
-         printf("Encoding failed!\n");
-     }
+    else{
+        printf("Encoding failed!\n");
+    }
 
         // Correct Encoding example
-         strcpy(hash160, "b774f3552c9f4b06b7485436644959979b758338");
+        strcpy(hash160, "b774f3552c9f4b06b7485436644959979b758338");
         if (encode_cashaddr(prefix, version, type, hash160, encoded_address, sizeof(encoded_address)) == 0)
         {
             printf("Encoding successful:\n%s\n",encoded_address);
@@ -298,16 +288,16 @@ int main() {
     return 0;
 }
 ```
-
-###6. Conclusion
+6. Conclusion
 
 cashaddr.h and cashaddr.c provide a complete, reliable, and easy-to-use library for handling the CashAddr address format for Bitcoin Cash. It includes all the necessary functions to easily integrate CashAddr addresses into any C application that needs to work with BCH addresses. The detailed error handling and internal function design ensure the robustness and accuracy of the library.
 
-### Sponsorship
+7. Sponsorship (Optional)
+
 If this project has been helpful to you, please consider sponsoring. Your support is greatly appreciated. Thank you!
 ```
-BTC: bc1qt3nh2e6gjsfkfacnkglt5uqghzvlrr6jahyj2k
-ETH: 0xD6503e5994bF46052338a9286Bc43bC1c3811Fa1
-DOGE: DTszb9cPALbG9ESNJMFJt4ECqWGRCgucky
-TRX: TAHUmjyzg7B3Nndv264zWYUhQ9HUmX4Xu4
+BTC:   bc1qt3nh2e6gjsfkfacnkglt5uqghzvlrr6jahyj2k
+ETH:   0xD6503e5994bF46052338a9286Bc43bC1c3811Fa1
+DOGE:  DTszb9cPALbG9ESNJMFJt4ECqWGRCgucky
+TRX:   TAHUmjyzg7B3Nndv264zWYUhQ9HUmX4Xu4
 ```
