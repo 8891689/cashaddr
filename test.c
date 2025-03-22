@@ -1,3 +1,4 @@
+/* gcc test.c test_cashaddr.c -o test */
 #include "cashaddr.h"
 #include <stdio.h>
 #include <stdlib.h>
