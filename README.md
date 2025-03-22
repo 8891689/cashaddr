@@ -241,53 +241,77 @@ You can use any standard C compiler (e.g., GCC, Clang).
 
 Calling the API:
 ```
+/* gcc test.c test_cashaddr.c -o test */
 #include "cashaddr.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main() {
-    // Decoding Example
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "用法: %s <cashaddr地址>\n", argv[0]);
+        return 1;
+    }
+    const char *input_address = argv[1];
     CashAddrResult result;
-    const char *address = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
-    if (decode_cashaddr(address, &result) == 0) {
-        printf("Decoding successful:\n");
-        printf("  Prefix: %s\n", result.prefix);
-        printf("  Version: %d\n", result.version);
-        printf("  Type: %s\n", result.type);
-        printf("  Hash160: %s\n", result.hash160);
-    } else {
-        printf("Decoding failed.\n");
+    printf("====================================\n");
+    if (decode_cashaddr(input_address, &result) != 0) {
+        fprintf(stderr, "解码地址失败\n");
+        return 1;
     }
+    printf("\n解码结果：\n");
+    printf("前缀: %s\n", result.prefix);
+    printf("版本: %d\n", result.version);
+    printf("类型: %s\n", result.type);
+    printf("哈希160: %s\n", result.hash160);
 
-    // Encoding Example (with deliberate error)
-    char encoded_address[128];
-    const char *prefix = "bitcoincash";
-    int version = 0;
-    const char *type = "P2PKH";
-    char hash160[41]; // Make it modifiable
-     // Incorrect hash for testing
-    strcpy(hash160, "b774k7h5xlj29mms6s4cwef74vcwvy22gdx6a");
-    if (encode_cashaddr(prefix, version, type, hash160, encoded_address, sizeof(encoded_address)) == 0)
-        {
-        printf("Encoding successful:\n%s\n",encoded_address);
-        }
-    else{
-        printf("Encoding failed!\n");
+    char encoded_address[512] = {0};
+    if (encode_cashaddr(result.prefix, result.version, result.type, result.hash160,
+                        encoded_address, sizeof(encoded_address)) != 0) {
+        fprintf(stderr, "编码地址失败\n");
+        return 1;
     }
-
-        // Correct Encoding example
-        strcpy(hash160, "b774f3552c9f4b06b7485436644959979b758338");
-        if (encode_cashaddr(prefix, version, type, hash160, encoded_address, sizeof(encoded_address)) == 0)
-        {
-            printf("Encoding successful:\n%s\n",encoded_address);
-        }
-        else{
-            printf("Encoding failed!\n");
-        }
+    printf("\n重新编码地址：\n%s\n", encoded_address);
+    printf("====================================\n");
     return 0;
 }
+
 ```
+
+# test
+```
+gcc test.c test_cashaddr.c -o test
+```
+```
+./test qp63uahgrxged4z5jswyt5dn5v3lzsem6cy4spdc2h
+```
+```
+====================================
+[调试] 前缀: bitcoincash
+[调试] Base32部分: qp63uahgrxged4z5jswyt5dn5v3lzsem6cy4spdc2h
+[调试] 5位数组 (packed): [0, 1, 26, 17, 28, 29, 23, 8, 3, 6, 8, 25, 13, 21, 2, 20, 18, 16, 14, 4, 11, 20, 13, 19, 20, 12, 17, 31, 2, 16, 25, 27, 26, 24, 4, 21, 16, 1, 13, 24, 10, 23]
+[调试] 有效载荷 (payload_packed): [0, 1, 26, 17, 28, 29, 23, 8, 3, 6, 8, 25, 13, 21, 2, 20, 18, 16, 14, 4, 11, 20, 13, 19, 20, 12, 17, 31, 2, 16, 25, 27, 26, 24]
+[调试] 提取的校验和: [4, 21, 16, 1, 13, 24, 10, 23]
+[调试] 多项式模运算结果: 0
+[调试] 解包后的有效载荷字节: [0, 117, 30, 118, 232, 25, 145, 150, 212, 84, 148, 28, 69, 209, 179, 163, 35, 241, 67, 59, 214]
+[调试] 版本字节: 0, 版本: 0, 类型位: 0
+
+解码结果：
+前缀: bitcoincash
+版本: 0
+类型: P2PKH
+哈希160: 751e76e8199196d454941c45d1b3a323f1433bd6
+[调试] 编码时版本字节: 0
+[调试] 编码时payload_bytes: [0, 117, 30, 118, 232, 25, 145, 150, 212, 84, 148, 28, 69, 209, 179, 163, 35, 241, 67, 59, 214]
+[调试] 编码时转换为5位数组: [0, 1, 26, 17, 28, 29, 23, 8, 3, 6, 8, 25, 13, 21, 2, 20, 18, 16, 14, 4, 11, 20, 13, 19, 20, 12, 17, 31, 2, 16, 25, 27, 26, 24]
+[调试] 计算得到的校验和: [4, 21, 16, 1, 13, 24, 10, 23]
+[调试] 完整5位数组（payload + checksum）: [0, 1, 26, 17, 28, 29, 23, 8, 3, 6, 8, 25, 13, 21, 2, 20, 18, 16, 14, 4, 11, 20, 13, 19, 20, 12, 17, 31, 2, 16, 25, 27, 26, 24, 4, 21, 16, 1, 13, 24, 10, 23]
+
+重新编码地址：
+bitcoincash:qp63uahgrxged4z5jswyt5dn5v3lzsem6cy4spdc2h
+====================================
+```
+
 6. Conclusion
 
 cashaddr.h and cashaddr.c provide a complete, reliable, and easy-to-use library for handling the CashAddr address format for Bitcoin Cash. It includes all the necessary functions to easily integrate CashAddr addresses into any C application that needs to work with BCH addresses. The detailed error handling and internal function design ensure the robustness and accuracy of the library.
