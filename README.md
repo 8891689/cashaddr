@@ -25,7 +25,7 @@ Purpose: Decodes a CashAddr address string into its constituent parts.
 
 Input:
 
-address: A pointer to the CashAddr address string to be decoded (e.g., "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a").
+address: A pointer to the CashAddr address string to be decoded (e.g., "bitcoincash:qp63uahgrxged4z5jswyt5dn5v3lzsem6cy4spdc2h").
 
 result: A pointer to a CashAddrResult structure, used to store the decoded results.
 
